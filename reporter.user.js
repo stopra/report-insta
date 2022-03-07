@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Report russian propaganda accounts on Instagram.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -60,7 +60,7 @@
 
     unsafeWindow.REPORTER = {
         progress: (curr, max) => {
-            console.log({curr,max});
+            progressBarIndicator.style.width = max === 0 ? "100%" : Math.round(curr / max * 100) + "%";
         }
     };
     unsafeWindow.onblur = function() {
@@ -90,6 +90,7 @@
 }
 
 #${PROGRESS_BAR_ID} {
+  z-index: 100;
   display: none;
   position: fixed;
   bottom: 0;
@@ -103,7 +104,7 @@
 #${PROGRESS_BAR_INDICATOR_ID} {
   width: 1%;
   height: 100%;
-  background-color: green;
+  background-color: #95ee95;
 }
     `)
 })();
