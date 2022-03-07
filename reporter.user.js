@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  Report russian propaganda accounts on Instagram.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -54,8 +54,7 @@
     );
 
     function isReporting() {
-        const btn = document.querySelector(`#${BUTTON_ID}`)
-        return btn && btn.disabled;
+        return progressBar.style.display === 'block';
     }
 
     unsafeWindow.REPORTER = {
