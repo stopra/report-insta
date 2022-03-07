@@ -159,7 +159,7 @@ async function click($, account, i, btns) {
 }
 
 function countReportedAccountsLastDay(accounts) {
-  const reportedLastDay = 0;
+  let reportedLastDay = 0;
   for (let account of accounts) {
     const reported = localStorage.getItem(account);
     // also verify reported === "true" to support backword compatibility: at first localStorage stored just boolean "true" value
