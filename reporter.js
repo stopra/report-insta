@@ -211,6 +211,7 @@ async function reportAccount($, account) {
   }
 
   for (let i = 0; i < accounts.length; i++) {
+    REPORTER.progress(i + 1, accounts.length);
     const account = accounts[i];
     try {
       const reported = localStorage.getItem(account);
@@ -244,8 +245,6 @@ async function reportAccount($, account) {
     catch (err) {
       console.error("failed to report '" + account + "' Error: " + err)
     }
-
-    REPORTER.progress(i + 1, accounts.length);
   }
   console.log("FINISHED");
 
