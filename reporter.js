@@ -205,14 +205,13 @@ async function reportAccount($, account) {
     console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
   }
 
-  if (reportedLastDay >= ACCOUNTS_PER_DAY) {
-    console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`, `color: ${COLOR_ATTENTION}`);
-    return;
-  }
+  for (const account of accounts) {
+    REPORTER.progress(reportedLastDay, ACCOUNTS_PER_DAY);
+    if (reportedLastDay >= ACCOUNTS_PER_DAY) {
+      console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`, `color: ${COLOR_ATTENTION}`);
+      break;
+    }
 
-  for (let i = 0; i < accounts.length; i++) {
-    REPORTER.progress(i + 1, accounts.length);
-    const account = accounts[i];
     try {
       const reported = localStorage.getItem(account);
       if (reported) {
