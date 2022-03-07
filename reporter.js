@@ -186,7 +186,7 @@ async function reportAccount($, account) {
     { selector: ".J09pf button:nth-child(11)" },
     // { selector: "#igCoreRadioButtontag-3" },
     // { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" },
-    // { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" }
+    { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" }
   ]);
 }
 
