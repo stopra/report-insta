@@ -1,7 +1,7 @@
 const $ = document.querySelector.bind(document);
 const COLOR_ATTENTION = '#fc036f';
 const COLOR_SUCCESS = '#77d54c';
-const COLOR_YELLOW = '#ffd24c';
+const COLOR_WARNING = '#ffd24c';
 const ACCOUNTS_PER_DAY = 40;
 const DURATION_DAY = 24 * 60 * 60 * 1000;
 
@@ -41,7 +41,7 @@ function randomBetween(min, max) {
 }
 
 function sleep(ms) {
-  console.log('waiting for', ms, 'ms...')
+  console.log('Waiting for', ms, 'ms...')
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -154,13 +154,13 @@ async function click($, account, i, btns) {
 }
 
 function countReportedAccountsLastDay(accounts) {
-  var reportedLastDay = 0;
+  const reportedLastDay = 0;
   for (let account of accounts) {
     const reported = localStorage.getItem(account);
-      // also verify reported === "true" to support backword compatibility: at first localStorage stored just boolean "true" value
-      if (!reported || reported === "true") {
+    // also verify reported === "true" to support backword compatibility: at first localStorage stored just boolean "true" value
+    if (!reported || reported === "true") {
       continue
-    }    
+    }
 
     const reportedAt = Number(reported);
     const interval = Date.now() - reportedAt;
@@ -195,7 +195,7 @@ async function reportAccount($, account) {
   console.log(`Accounts: ${accounts}`);
 
   const failedAccounts = [];
-  var reportedLastDay = countReportedAccountsLastDay(accounts);
+  const reportedLastDay = countReportedAccountsLastDay(accounts);
   if (reportedLastDay > 0) {
     console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
   }
@@ -209,7 +209,7 @@ async function reportAccount($, account) {
     try {
       const reported = localStorage.getItem(account);
       if (reported) {
-        console.log(`%cskip: account '${account}' already reported`, `color: ${COLOR_YELLOW}`);
+        console.log(`%cskip: account '${account}' already reported`, `color: ${COLOR_WARNING}`);
         continue
       }
 
@@ -248,3 +248,30 @@ async function reportAccount($, account) {
 
 // DO NOT REMOVE. Use this global variable to test stuff. The proxy server will add the real accounts when returning the response.
 let accounts = [];
+
+const console = (function (oldCons) {
+  function add(text) {
+    if (logs.style.display !== 'none') {
+      logs.innerHTML = logs.innerHTML + "<br />" + text;
+    }
+  }
+
+  return {
+    log: function (text) {
+      oldCons.log(text);
+      add(text;
+    },
+    info: function (text) {
+      oldCons.info(text);
+      add(text;
+    },
+    warn: function (text) {
+      oldCons.warn(text);
+      add(text;
+    },
+    error: function (text) {
+      oldCons.error(text);
+      add(text;
+    }
+  };
+}(window.console));
