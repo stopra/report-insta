@@ -17,7 +17,7 @@
 
     function render() {
         const root = document.querySelector(ROOT_SELECTOR);
-        if (root.querySelector(`#${BUTTON_ID}`)) {
+        if (!root || root.querySelector(`#${BUTTON_ID}`)) {
             return;
         }
 
