@@ -200,7 +200,7 @@ async function reportAccount($, account) {
   console.log(`Accounts: ${accounts}`);
 
   const failedAccounts = [];
-  const reportedLastDay = countReportedAccountsLastDay(accounts);
+  let reportedLastDay = countReportedAccountsLastDay(accounts);
   if (reportedLastDay > 0) {
     console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
   }
