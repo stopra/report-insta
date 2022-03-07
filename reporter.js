@@ -1,3 +1,5 @@
+$ = $ ?? document.querySelector.bind(document);
+
 const COLOR_ATTENTION = '#fc036f';
 const COLOR_SUCCESS = '#77d54c';
 const COLOR_YELLOW = '#ffd24c';
