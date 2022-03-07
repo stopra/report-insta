@@ -4,6 +4,11 @@ const COLOR_SUCCESS = '#77d54c';
 const COLOR_WARNING = '#ffd24c';
 const ACCOUNTS_PER_DAY = 40;
 const DURATION_DAY = 24 * 60 * 60 * 1000;
+const REPORTER = window.REPORTER || {
+  progress: (curr, max) => {
+    // noop
+  }
+};
 
 function simulateMouseClick(element) {
   const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
@@ -181,7 +186,7 @@ async function reportAccount($, account) {
     { selector: ".J09pf button:nth-child(11)" },
     // { selector: "#igCoreRadioButtontag-3" },
     // { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" },
-    { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" }
+    // { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" }
   ]);
 }
 
@@ -200,17 +205,18 @@ async function reportAccount($, account) {
     console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
   }
 
-  for (let account of accounts) {
-    if (reportedLastDay >= ACCOUNTS_PER_DAY) {
-      console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`, `color: ${COLOR_ATTENTION}`);
-      break;
-    }
+  if (reportedLastDay >= ACCOUNTS_PER_DAY) {
+    console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`, `color: ${COLOR_ATTENTION}`);
+    return;
+  }
 
+  for (let i = 0; i < accounts.length; i++) {
+    const account = accounts[i];
     try {
       const reported = localStorage.getItem(account);
       if (reported) {
         console.log(`%cskip: account '${account}' already reported`, `color: ${COLOR_WARNING}`);
-        continue
+        continue;
       }
 
       await sleep(randomBetween(1000, 2000));
@@ -238,6 +244,8 @@ async function reportAccount($, account) {
     catch (err) {
       console.error("failed to report '" + account + "' Error: " + err)
     }
+
+    REPORTER.progress(i + 1, accounts.length);
   }
   console.log("FINISHED");
 
