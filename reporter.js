@@ -248,30 +248,3 @@ async function reportAccount($, account) {
 
 // DO NOT REMOVE. Use this global variable to test stuff. The proxy server will add the real accounts when returning the response.
 let accounts = [];
-
-const console = (function (oldCons) {
-  function add(text) {
-    if (logs.style.display !== 'none') {
-      logs.innerHTML = logs.innerHTML + "<br />" + text;
-    }
-  }
-
-  return {
-    log: function (text) {
-      oldCons.log(text);
-      add(text;
-    },
-    info: function (text) {
-      oldCons.info(text);
-      add(text;
-    },
-    warn: function (text) {
-      oldCons.warn(text);
-      add(text;
-    },
-    error: function (text) {
-      oldCons.error(text);
-      add(text;
-    }
-  };
-}(window.console));
