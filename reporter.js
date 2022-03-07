@@ -19,14 +19,15 @@ function simulateMouseClick(element) {
 }
 
 function setNativeValue(element, value) {
-  const valueSetter = Object.getOwnPropertyDescriptor(element, 'value').set;
+  const valueSetter = Object.getOwnPropertyDescriptor(element, 'value')?.set;
   const prototype = Object.getPrototypeOf(element);
-  const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value').set;
-
+  const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
   if (valueSetter && valueSetter !== prototypeValueSetter) {
     prototypeValueSetter.call(element, value);
-  } else {
+  } else if (valueSetter) {
     valueSetter.call(element, value);
+  } else {
+    element.value = value;
   }
 }
 
