@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -172,8 +172,8 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function waitForElement(selector) {
-        for (let attempt = 0; attempt < 10; attempt++) {
+    async function waitForElement(selector, attempts = 10) {
+        for (let attempt = 0; attempt < attempts; attempt++) {
             console.log(`Wait for '${selector}' to appear...`);
             await sleep(randomBetween(500, 1000));
             if ($(selector)) {
@@ -340,12 +340,22 @@
 
             async function followAccount() {
                 console.log("Follow account ...");
-                $('._5f5mN.jIbKX._6VtSN.yZn4P').click();
+                // Sometimes there are 2 different follow buttons. So we click the one that is available.
+                $('._5f5mN.jIbKX._6VtSN.yZn4P')?.click();
+                $('.sqdOP.L3NKy.y3zKF')?.click();
+                // Wait for the unfollow button to appear.
+                const unfollow = await waitForElement('._5f5mN.-fzfL._6VtSN.yZn4P', 5);
+                if (!unfollow) {
+                    console.log(`%cCouldn't follow this account`, `color: ${COLOR_WARNING}`);
+                    const container = await waitForElement('.mt3GC');
+                    const okBtn = container.querySelector(".aOOlW.HoLwm");
+                    okBtn?.click();
+                }
             }
 
             async function unfollowAccount() {
                 console.log("Unfollow account ...");
-                $('._5f5mN.-fzfL._6VtSN.yZn4P').click();
+                $('._5f5mN.-fzfL._6VtSN.yZn4P')?.click();
                 const container = await waitForElement('.mt3GC');
                 if (!container) {
                     return;
