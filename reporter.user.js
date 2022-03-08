@@ -172,6 +172,22 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    async function waitForElement(selector) {
+        for (let attempt = 0; attempt < 10; attempt++) {
+            console.log(`Wait for '${selector}' to appear...`);
+            await sleep(randomBetween(500, 1000));
+            if ($(selector)) {
+                break;
+            }
+        }
+
+        if (!$(selector)) {
+            console.log(`Element '${selector}' not found`);
+        }
+
+        return $(selector);
+    }
+
     async function waitForElementToUpdate(el) {
         return new Promise((resolve, reject) => {
             const observer = new MutationObserver(() => {
@@ -308,7 +324,7 @@
                 return reportedLastDay;
             }
 
-            async function reportAccount($, account) {
+            async function reportAccount(account) {
                 console.log("start reporting");
                 await click($, account, 0, [
                     { selector: ".VMs3J .wpO6b" },
@@ -322,7 +338,27 @@
                 ]);
             }
 
-            // Kick off the script!
+            async function followAccount() {
+                console.log("Follow account ...");
+                $('._5f5mN.jIbKX._6VtSN.yZn4P').click();
+            }
+
+            async function unfollowAccount() {
+                console.log("Unfollow account ...");
+                $('._5f5mN.-fzfL._6VtSN.yZn4P').click();
+                const container = await waitForElement('.mt3GC');
+                if (!container) {
+                    return;
+                }
+                const unfollowBtn = container.querySelector(".aOOlW.-Cab_");
+                if (unfollowBtn) {
+                    unfollowBtn?.click();
+                    console.log(`Unfollowed!`);
+                } else {
+                    console.error(`Couldn't find the unfollow button`);
+                }
+            }
+
             console.log('%cIMPORTANT! Please move focus from Dev Tools back to the page!', `color: ${COLOR_ATTENTION}`)
             // Wait for the user to switch the focus back to the page.
             await sleep(5000);
@@ -366,8 +402,11 @@
                     }
 
                     await sleep(randomBetween(1500, 3000));
-                    // Call a function to report the account.
-                    await reportAccount($, account);
+                    await followAccount(account);
+                    await sleep(randomBetween(1500, 3000));
+                    await reportAccount(account);
+                    await sleep(randomBetween(1500, 3000));
+                    await unfollowAccount(account);
 
                     localStorage.setItem(account, Date.now());
                     reportedLastDay++;
@@ -376,14 +415,13 @@
                     console.error("failed to report '" + account + "' Error: " + err)
                 }
             }
-            GM_notification({
-                title: "Report Russian Propaganda",
-                text: "Finished reporting Instagram Accounts! Glory to Ukraine!",
-            });
 
+            STATE.progress(1);
             if (failedAccounts.length > 0) {
                 console.log("Failed accounts: " + failedAccounts)
             }
+
+            console.log('DONE!');
         }
 
         unsafeWindow.onblur = function() {
@@ -404,6 +442,10 @@
                     onload: async ({response: accounts}) => {
                         await report(accounts);
                         STATE.stopReporting();
+                        GM_notification({
+                            title: "Report Russian Propaganda",
+                            text: "Finished reporting Instagram Accounts! Glory to Ukraine!",
+                        });
                     }
                 });
             })
