@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.8
+// @version      0.9
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -116,15 +116,26 @@
   left: 0;
   right: 0;
   width: 100%;
-  height: 50px;
+  height: 75px;
   background-color: #cccccc2a;
 }
 
 #${PROGRESS_BAR_INDICATOR_ID} {
   width: 1%;
   height: 100%;
-  background-color: #95ee95;
-}`)
+  animation-name: pulseAnimation;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate-reverse;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes pulseAnimation {
+    from   { background-color: rgb(255 215 0 / 90%) }
+    to   { background-color: rgb(0 87 184 / 90%) }
+}
+`)
+
     }
 
     // </UI>
