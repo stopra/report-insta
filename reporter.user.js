@@ -776,47 +776,52 @@
             }
 
             async function goToAccount($, account) {
-                const searchButton = ".ev30f216"
-                if ($(searchButton) == null) {
-                    console.error(`Search button '${searchButton}' not found. Make sure the search area is visible.`);
-                    return false;
-                }
+                sleep(randomBetween(1000, 2000));
 
-                // Click on the search button to open the search results menu.
-                // simulateMouseClick($(searchButton));
-                console.log(`Search button '${searchButton}' clicked!`);
-
-                // Simulate typing the search query
-                const searchInput = ".ev30f212"
-                simulateMouseClick($(searchInput));
-                setNativeValue($(searchInput), account);
-                // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
-                console.log(`Search query '${account}' entered!`);
-
-                // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
-                const searchForm = ".ev30f210";
-                $(searchForm).submit();
-                console.log(`Searching!`);
-
-                const firstSearchRow = ".e12ixqxa0 a"
-                // Wait for the search results...
-                for (let attempt = 0; attempt < 5; attempt++) {
-                    await sleep(randomBetween(500, 1000));
-                    if ($(firstSearchRow)) {
-                        break;
+                if (!unsafeWindow.location.href.endsWith(`search?q=${account}`)) {
+                    const searchButton = ".ev30f216"
+                    if ($(searchButton) == null) {
+                        console.error(`Search button '${searchButton}' not found. Make sure the search area is visible.`);
+                        return false;
                     }
+
+                    // Click on the search button to open the search results menu.
+                    // simulateMouseClick($(searchButton));
+                    console.log(`Search button '${searchButton}' clicked!`);
+
+                    // Simulate typing the search query
+                    const searchInput = ".ev30f212"
+                    simulateMouseClick($(searchInput));
+                    setNativeValue($(searchInput), account);
+                    // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
+                    console.log(`Search query '${account}' entered!`);
+
+                    // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
+                    const searchForm = ".ev30f210";
+                    $(searchForm).submit();
+                    console.log(`Searching!`);
+                    return true;
+                } else {
+                    const firstSearchRow = ".e12ixqxa0 a"
+                    // Wait for the search results...
+                    for (let attempt = 0; attempt < 5; attempt++) {
+                        await sleep(randomBetween(500, 1000));
+                        if ($(firstSearchRow)) {
+                            break;
+                        }
+                    }
+
+                    const link = $(firstSearchRow);
+                    if (!link) {
+                        console.error(`Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`)
+                        return false;
+                    }
+
+                    link.click()
+
+                    console.log(`Link to account '${link}' clicked`);
+                    return true;
                 }
-
-                const link = $(firstSearchRow);
-                if (!link) {
-                    console.error(`Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`)
-                    return false;
-                }
-
-                link.click()
-
-                console.log(`Link to account '${link}' clicked`);
-                return true;
             }
 
             async function click($, account, i, btns) {
@@ -932,23 +937,38 @@
                 }
             }
 
-            console.log('%cIMPORTANT! Please move focus from Dev Tools back to the page!', `color: ${COLOR_ATTENTION}`)
-            // Wait for the user to switch the focus back to the page.
-            await sleep(5000);
+            // console.log('%cIMPORTANT! Please move focus from Dev Tools back to the page!', `color: ${COLOR_ATTENTION}`)
+            // // Wait for the user to switch the focus back to the page.
+            // await sleep(5000);
 
-            shuffle(accounts);
+            // shuffle(accounts);
             console.log(`Accounts: ${accounts}`);
 
-            const failedAccounts = [];
+            // const failedAccounts = [];
             let reportedLastDay = countReportedAccountsLastDay(accounts);
             if (reportedLastDay > 0) {
                 console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
             }
 
-            for (const account of accounts) {
+            var accountToStart = 0;
+            let currentlyReporting = localStorage.getItem("curReport");
+
+            if (currentlyReporting) {
+                accountToStart = accounts.indexOf(currentlyReporting);
+            }
+
+            let account = accounts[accountToStart];
+
+            localStorage.setItem("curReport", account);
+
+            for (var i = 0; i < 2; ++i)
+            {
                 STATE.progress(reportedLastDay / ACCOUNTS_PER_DAY);
                 if (reportedLastDay >= ACCOUNTS_PER_DAY) {
                     console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please re-run this script tomorrow. We'll stop russian propaganda!`, `color: ${COLOR_ATTENTION}`);
+                    break;
+                }
+                if (i === 1) {
                     break;
                 }
 
@@ -989,12 +1009,19 @@
                 }
             }
 
-            STATE.progress(1);
-            if (failedAccounts.length > 0) {
-                console.log("Failed accounts: " + failedAccounts)
-            }
+            // if (failedAccounts.length > 0) {
+            //     console.log("Failed accounts: " + failedAccounts)
+            // }
 
-            console.log('DONE!');
+            if (accountToStart === accounts.length - 1)
+            {
+                STATE.progress(1);
+                console.log('DONE!');
+                localStorage.removeItem("curReport");
+            } else {
+                localStorage.setItem("curReport", accounts[accountToStart + 1]);
+                unsafeWindow.location.href = "https://tiktok.com"
+            }
         }
 
         unsafeWindow.onblur = function() {
@@ -1005,17 +1032,16 @@
 
         new MutationObserver(() => {
             const container = $(".e10win0d1");
-            createReportButton(container, async () => {
+
+            var runReporting = async () => {
                 createProgressBar();
                 STATE.startReporting();
                 GM_xmlhttpRequest({
-                    // TODO: fetch the actual list
-                    url: "https://palyanytsya.wakeup4.repl.co/list",
+                    url: "https://palyanytsya.wakeup4.repl.co/tiktok",
                     method: "GET",
                     responseType: "json",
                     onload: async ({response: accounts}) => {
-                        // await report(accounts);
-                        await report(["murayev", "pp_brandomax"]);
+                        await report(accounts);
                         STATE.stopReporting();
                         GM_notification({
                             title: "Report Russian Propaganda",
@@ -1023,7 +1049,14 @@
                         });
                     }
                 });
-            })
+            };
+
+            createReportButton(container, runReporting);
+
+            // if (localStorage.getItem("curReport")) {
+            //     sleep(5000);
+            //     runReporting();
+            // }
         }).observe($("#app"),{ childList: true, subtree: true });
     }
 
