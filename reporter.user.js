@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.11
+// @version      0.12
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
 // @match        https://web.telegram.org/k/
 // @icon         data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjI5OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBIMHYyOTguN2g1MTJWMFoiIGZpbGw9IiM0RDcyQzAiLz48cGF0aCBkPSJNNTEyIDE0OS4zSDB2MTQ5LjRoNTEyVjE0OS4zWiIgZmlsbD0iI0YyREQzMCIvPjwvc3ZnPg==
 // @connect      palyanytsya.wakeup4.repl.co
-// @connect      ukrzaliznytsya.132bananana.repl.co
 // @grant        GM_addElement
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
@@ -730,7 +729,7 @@
                 createProgressBar();
                 STATE.startReporting();
                 GM_xmlhttpRequest({
-                    url: "https://ukrzaliznytsya.132bananana.repl.co/list",
+                    url: "https://palyanytsya.wakeup4.repl.co/telegram",
                     method: "GET",
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
