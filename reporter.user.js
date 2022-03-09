@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.10
+// @version      0.11
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -521,7 +521,7 @@
                 createProgressBar();
                 STATE.startReporting();
                 GM_xmlhttpRequest({
-                    url: "https://palyanytsya.wakeup4.repl.co/list",
+                    url: "https://palyanytsya.wakeup4.repl.co/instagram",
                     method: "GET",
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
