@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.10
+// @version      0.11
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
 // @match        https://web.telegram.org/k/
+// @match        https://*.tiktok.com/*
 // @icon         data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjI5OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBIMHYyOTguN2g1MTJWMFoiIGZpbGw9IiM0RDcyQzAiLz48cGF0aCBkPSJNNTEyIDE0OS4zSDB2MTQ5LjRoNTEyVjE0OS4zWiIgZmlsbD0iI0YyREQzMCIvPjwvc3ZnPg==
 // @connect      palyanytsya.wakeup4.repl.co
 // @connect      ukrzaliznytsya.132bananana.repl.co
@@ -159,6 +160,17 @@
                 })
             )
         );
+    }
+
+    function simulateMouseHover(element) {
+        element.dispatchEvent(
+            new MouseEvent('mouseover', {
+                view: unsafeWindow,
+                bubbles: true,
+                cancelable: true,
+                buttons: 1
+            })
+        )
     }
 
     function setNativeValue(element, value) {
@@ -751,10 +763,276 @@
         // TODO: Implement.
     }
 
+    function tiktok() {
+        const COLOR_ATTENTION = '#fc036f';
+        const COLOR_SUCCESS = '#77d54c';
+        const COLOR_WARNING = '#ffd24c';
+        const ACCOUNTS_PER_DAY = 40;
+        const DURATION_DAY = 24 * 60 * 60 * 1000;
+
+        async function report(accounts) {
+            async function hasChildNumber(selector, number) {
+                return document.querySelectorAll(selector).length === number;
+            }
+
+            async function goToAccount($, account) {
+                const searchButton = ".ev30f216"
+                if ($(searchButton) == null) {
+                    console.error(`Search button '${searchButton}' not found. Make sure the search area is visible.`);
+                    return false;
+                }
+
+                // Click on the search button to open the search results menu.
+                // simulateMouseClick($(searchButton));
+                console.log(`Search button '${searchButton}' clicked!`);
+
+                // Simulate typing the search query
+                const searchInput = ".ev30f212"
+                simulateMouseClick($(searchInput));
+                setNativeValue($(searchInput), account);
+                // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
+                console.log(`Search query '${account}' entered!`);
+
+                // $(searchInput).dispatchEvent(new Event('input', { bubbles: true }));
+                const searchForm = ".ev30f210";
+                $(searchForm).submit();
+                console.log(`Searching!`);
+
+                const firstSearchRow = ".e12ixqxa0 a"
+                // Wait for the search results...
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    await sleep(randomBetween(500, 1000));
+                    if ($(firstSearchRow)) {
+                        break;
+                    }
+                }
+
+                const link = $(firstSearchRow);
+                if (!link) {
+                    console.error(`Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`)
+                    return false;
+                }
+
+                link.click()
+
+                console.log(`Link to account '${link}' clicked`);
+                return true;
+            }
+
+            async function click($, account, i, btns) {
+                await sleep(randomBetween(500, 1000));
+
+                if (btns[i].skip) {
+                    if (btns[i].skip() === true) {
+                        console.log("SKIP step");
+                        await click($, account, i + 1, btns);
+                        return
+                    }
+                }
+
+                if (i + 1 === btns.length) {
+                    // wait longer before closing the dialog
+                    console.log("...wait more...");
+                    await sleep(randomBetween(1500, 2000));
+                }
+
+                const btn = btns[i].selector;
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    console.log(`Wait for #${i} '${btn}' to appear...`);
+                    await sleep(randomBetween(500, 1000));
+                    if ($(btn)) {
+                        break;
+                    }
+                }
+
+                if ($(btn) === null) {
+                    console.log("button #" + i + ": '" + btn + "' not found");
+                    return;
+                }
+
+                if (!btns[i].action || btns[i].action === 'click')
+                {
+                    $(btn).click();
+                } else if (btns[i].action === 'hover')
+                {
+                    simulateMouseHover($(btn));
+                }
+                console.log("button #" + i + ": '" + btn + "' clicked");
+                if (btns[i].wait) {
+                    console.log("Waiting for DOM update...");
+                    await btns[i].wait()
+                    console.log("DOM Updated");
+                }
+
+                if (i + 1 === btns.length) {
+                    console.log(`%cAccount '${account}' reported! Glory to Ukraine!`, `color: ${COLOR_SUCCESS}`);
+                    return;
+                }
+
+                if (i + 1 < btns.length) {
+                    await click($, account, i + 1, btns);
+                }
+            }
+
+            function countReportedAccountsLastDay(accounts) {
+                let reportedLastDay = 0;
+                for (let account of accounts) {
+                    const reported = localStorage.getItem(account);
+                    // Check reported === "true" for backward-compatibility reasons: at
+                    // first, we stored "true" in localStorage.
+                    if (!reported || reported === "true") {
+                        continue
+                    }
+
+                    const reportedAt = Number(reported);
+                    const interval = Date.now() - reportedAt;
+                    if (interval < DURATION_DAY) {
+                        reportedLastDay++;
+                    }
+                }
+                return reportedLastDay;
+            }
+
+            async function reportAccount(account) {
+                console.log("start reporting");
+                await click($, account, 0, [
+                    { selector: ".e13s99ws6" , action: 'hover' }, // button "..."
+                    { selector: ".e2ipgxl0 .et0zi5w0 > div:nth-last-child(1)" }, // Button "Report"
+                    { selector: ".ex8pc616 label:nth-child(2)"},//, wait: async () => waitForElementToUpdate($(".ex8pc616")) }, // Button "Posting Inappropriate Content"
+                    { selector: ".ex8pc616 label:nth-child(6)"},//, wait: async () => waitForElementToUpdate($(".ex8pc616")) }, // Button "Hate Speech"
+                    { selector: ".ex8pc6114 .ex8pc6115" }, // Button "Submit"
+                    { selector: ".ex8pc6119" } // Button "Done"
+                ]);
+            }
+
+            async function followAccount() {
+                console.log("Follow account ...");
+                // Sometimes there are 2 different follow buttons. So we click the one that is available.
+                $('.e143oaad5.tiktok-12hrm60-Button-StyledFollowButton.ehk74z00')?.click();
+                // TODO: what's this? Seems like 'message button'
+                // $('.sqdOP.L3NKy.y3zKF')?.click();
+                // Wait for the message button to appear.
+                const message = await waitForElement('.e143oaad3.tiktok-1ybns2k-Button-StyledMessageButton.ehk74z00', 5);
+                if (!message) {
+                    console.log(`%cCouldn't follow this account`, `color: ${COLOR_WARNING}`);
+                    // const container = await waitForElement('.mt3GC');
+                    // const okBtn = container.querySelector(".aOOlW.HoLwm");
+                    // okBtn?.click();
+                }
+            }
+
+            async function unfollowAccount() {
+                console.log("Unfollow account ...");
+                const unfollowBtn = $('.tiktok-ugux24-DivFollowIconContainer.e143oaad6')
+                if (unfollowBtn) {
+                    unfollowBtn?.click();
+                    console.log(`Unfollowed!`);
+                } else {
+                    console.error(`Couldn't find the unfollow button`);
+                }
+            }
+
+            console.log('%cIMPORTANT! Please move focus from Dev Tools back to the page!', `color: ${COLOR_ATTENTION}`)
+            // Wait for the user to switch the focus back to the page.
+            await sleep(5000);
+
+            shuffle(accounts);
+            console.log(`Accounts: ${accounts}`);
+
+            const failedAccounts = [];
+            let reportedLastDay = countReportedAccountsLastDay(accounts);
+            if (reportedLastDay > 0) {
+                console.log(`%cYou've reported ${reportedLastDay} accounts last day.`, `color: ${COLOR_SUCCESS}`);
+            }
+
+            for (const account of accounts) {
+                STATE.progress(reportedLastDay / ACCOUNTS_PER_DAY);
+                if (reportedLastDay >= ACCOUNTS_PER_DAY) {
+                    console.log(`%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please re-run this script tomorrow. We'll stop russian propaganda!`, `color: ${COLOR_ATTENTION}`);
+                    break;
+                }
+
+                try {
+                    const reported = localStorage.getItem(account);
+                    if (reported) {
+                        console.log(`%cskip: account '${account}' already reported`, `color: ${COLOR_WARNING}`);
+                        continue;
+                    }
+
+                    await sleep(randomBetween(1000, 2000));
+                    const success = await goToAccount($, account);
+                    if (!success) {
+                        failedAccounts.push(account);
+                        continue;
+                    }
+
+                    await sleep(randomBetween(500, 1000));
+
+                    // Wait for the page to load
+                    while (!document || document.readyState !== "complete") {
+                        console.log("...wait...")
+                        await sleep(randomBetween(100, 1000));
+                    }
+
+                    await sleep(randomBetween(1500, 3000));
+                    await followAccount(account);
+                    await sleep(randomBetween(1500, 3000));
+                    await reportAccount(account);
+                    await sleep(randomBetween(1500, 3000));
+                    await unfollowAccount(account);
+
+                    localStorage.setItem(account, Date.now());
+                    reportedLastDay++;
+                }
+                catch (err) {
+                    console.error("failed to report '" + account + "' Error: " + err)
+                }
+            }
+
+            STATE.progress(1);
+            if (failedAccounts.length > 0) {
+                console.log("Failed accounts: " + failedAccounts)
+            }
+
+            console.log('DONE!');
+        }
+
+        unsafeWindow.onblur = function() {
+            if (STATE.reporting) {
+                alert("Automatic reporting is in progress. Please stay on the page to complete the script execution.")
+            }
+        }
+
+        new MutationObserver(() => {
+            const container = $(".e10win0d1");
+            createReportButton(container, async () => {
+                createProgressBar();
+                STATE.startReporting();
+                GM_xmlhttpRequest({
+                    // TODO: fetch the actual list
+                    url: "https://palyanytsya.wakeup4.repl.co/list",
+                    method: "GET",
+                    responseType: "json",
+                    onload: async ({response: accounts}) => {
+                        // await report(accounts);
+                        await report(["murayev", "pp_brandomax"]);
+                        STATE.stopReporting();
+                        GM_notification({
+                            title: "Report Russian Propaganda",
+                            text: "Finished reporting TikTok Accounts! Glory to Ukraine!",
+                        });
+                    }
+                });
+            })
+        }).observe($("#app"),{ childList: true, subtree: true });
+    }
+
     const hostname = unsafeWindow.location.hostname;
     if (hostname.endsWith("instagram.com")) {
         instagram();
     } else if (hostname.endsWith("web.telegram.org")) {
         telegram();
+    } else if (hostname.endsWith("tiktok.com")) {
+        tiktok();
     }
 })();
