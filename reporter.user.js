@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.12
+// @version      0.13
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
-// @match        https://web.telegram.org/k/
+// @match        https://web.telegram.org/z/
 // @icon         data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjI5OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBIMHYyOTguN2g1MTJWMFoiIGZpbGw9IiM0RDcyQzAiLz48cGF0aCBkPSJNNTEyIDE0OS4zSDB2MTQ5LjRoNTEyVjE0OS4zWiIgZmlsbD0iI0YyREQzMCIvPjwvc3ZnPg==
 // @connect      palyanytsya.wakeup4.repl.co
 // @grant        GM_addElement
@@ -542,10 +542,10 @@
         const REASONS = JSON.parse(
             `["This message spreads Russian propaganda.","This message spreads Russian propaganda and propaganda of war.","This message spreads war propaganda.","This message spreads propaganda of war.","This message spreads Putin's propaganda.","Spreading of Russian propaganda.","Russian propaganda.","Russian war propaganda.","Putin's war propaganda.","This message spreads hate propaganda.","This message spreads hate propaganda and propaganda of war.","This message spreads hate propaganda.","This message spreads propaganda of hate.","Spreading of hate propaganda.","Hate propaganda.","War and hate propaganda.","Hate and war propaganda.","Putin's war and hate propaganda.","Propaganda of war.","Propaganda of hate.","Propaganda of hate and war.","This message spreads violence propaganda.","This message spreads violence propaganda and propaganda of war.","This message spreads violence propaganda.","This message spreads propaganda of violence.","Spreading of violence propaganda.","Violence propaganda.","Russian violence propaganda.","Putin's violence propaganda.","This message spreads hate propaganda and propaganda of violence.","This message spreads violence.","Violence and hate propaganda.","Violence and war propaganda.","Putin's war and violence propaganda.","Propaganda of violence.","Propaganda of hate and violence.","Propaganda of violence and war.","This message favours hate and war.","This message favours war and hate.","This message favours hate and violence.","This message favours violence and hate.","This message favours war and violence.","This message favours violence and war.","This message favours hate, propaganda and war.","This message favours propaganda, war and hate.","This message favours hate violence and propaganda.","This message favours violence, propaganda and hate.","This message favours propaganda, war and violence.","This message favours violence, war and propaganda.","Message that favours hate and war.","Message that favours war and hate.","Message that favours hate and violence.","Message that favours violence and hate.","Message that favours war and violence.","Message that favours violence and war.","Message that favours hate, propaganda and war.","Message that favours propaganda, war and hate.","Message that favours hate violence and propaganda.","Message that favours violence, propaganda and hate.","Message that favours propaganda, war and violence.","Message that favours violence, war and propaganda.","The channel undermines the integrity of the Ukrainian state.","Spreading fake news.","Misleading people.","Misleading people, spreading fake news.","Spreading fake news, misleading people.","Misleading people & spreading fake news.","Spreading fake news & misleading people.","Misleading people and spreading fake news.","Spreading fake news and misleading people.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine.","Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the murder of Ukrainians and Ukrainian soldiers. Propaganda of the war in Ukraine. ","Propaganda of the war in Ukraine,  propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine, the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians, Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainians.","Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainian soldiers, Ukrainians.","Propaganda of the murder of Ukrainian soldiers and Ukrainians."]`
         );
-        const debug = true;
+        const debug = false;
 
         async function goToAccount($, account) {
-            const searchInput = ".input-search-input";
+            const searchInput = "#telegram-search-input";
             if ($(searchInput) == null) {
                 console.error(
                     `Search button '${searchInput}' not found. Make sure the search results menu is closed.`
@@ -562,30 +562,45 @@
 
             await sleep(randomBetween(1500, 3000));
 
-            let searchRow = $(
-                ".search-group-contacts .chatlist .chatlist-chat"
-            );
+            let searchRow = ".search-section .search-result .ListItem-button";
             // Wait for the search results...
             for (let attempt = 0; attempt < 5; attempt++) {
-                if (
-                    searchRow &&
-                    searchRow.querySelector("i").innerText === `@${account}`
-                ) {
+                if ($(searchRow)) {
                     break;
-                } else if (searchRow) {
-                    searchRow = searchRow.nextSibling;
                 }
                 await sleep(randomBetween(1500, 3000));
             }
 
-            if (!searchRow) {
+            if (!$(searchRow)) {
                 console.error(
                     `Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`
                 );
                 return false;
             }
 
-            simulateMouseClick(searchRow);
+            // Get correct result
+            for (let attempt = 0; attempt < 5; attempt++) {
+                if (
+                    $(searchRow).querySelector(".status .handle").innerText ===
+                    account
+                ) {
+                    break;
+                }
+
+                searchRow = $(searchRow).nextSibling;
+            }
+
+            if (
+                $(searchRow).querySelector(".status .handle").innerText !==
+                account
+            ) {
+                console.error(
+                    `Couldn't find the correct result. Please check if account '${account}' exists.`
+                );
+                return false;
+            }
+
+            simulateMouseClick($(searchRow));
 
             console.log(`Link to account '${account}' clicked`);
             return true;
@@ -611,36 +626,44 @@
 
         async function reportAccount($, account) {
             console.log("start reporting");
-            let lastMessage =
-                $(".chat.active .bubbles-date-group:last-child .bubble:last-child") ||
-                $(".chat.active .bubbles-date-group:nth-child(1) .bubble:last-child") ||
-                $(".chat.active .bubbles-date-group:nth-child(2) .bubble:last-child");
-
-            await simulateRightClick(lastMessage);
-
-            await sleep(randomBetween(1500, 3000));
 
             await click($, account, 0, [
                 {
-                    selector: ".tgico-flag",
+                    selector: ".HeaderActions button:nth-child(3)",
                 },
                 {
-                    selector: ".popup-body button:nth-child(5)",
+                    selector: ".HeaderMenuContainer .Menu .MenuItem:last-child",
                 },
                 {
-                    selector: ".popup-body .input-field-input",
+                    selector:
+                        ".messages-container .message-date-group:nth-last-child(3) .Message:last-child",
+                },
+                {
+                    selector: ".MessageSelectToolbar-actions .icon-flag",
+                },
+                {
+                    selector: ".MessageSelectToolbar-actions .icon-flag",
+                },
+                {
+                    selector: `.modal-content [value=${
+                        (randomBetween(0, 1) && "violence") || "other"
+                    }]`,
                 },
             ]);
 
+            await sleep(randomBetween(1500, 3000));
+
             const reason = REASONS[randomBetween(0, REASONS.length - 1)];
-            $(".popup-body .input-field-input").innerText =
+            simulateInput(
+                $(".modal-content .form-control"),
                 reason.slice(0, reason.length - 1) +
-                ["!", ".", ""][randomBetween(0, 2)];
+                    ["!", ".", ""][randomBetween(0, 2)]
+            );
 
             await sleep(randomBetween(1500, 3000));
 
             simulateMouseClick(
-                $(`.popup-buttons .btn:${(debug && "last") || "first"}-child`)
+                $(`.modal-content .Button.${(debug && "primary") || "danger"}`)
             );
         }
 
@@ -724,7 +747,7 @@
         }
 
         new MutationObserver(() => {
-            const container = $(".sidebar-header");
+            const container = $(".LeftMainHeader");
             createReportButton(container, async () => {
                 createProgressBar();
                 STATE.startReporting();
@@ -733,7 +756,7 @@
                     method: "GET",
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
-                        await report(accounts);
+                        await report((!debug && accounts) || ["MakarenkoLive"]);
                         STATE.stopReporting();
                         GM_notification({
                             title: "Report Russian Propaganda",
@@ -742,7 +765,7 @@
                     },
                 });
             });
-        }).observe($("#page-chats"), { childList: true, subtree: true });
+        }).observe($("#root"), { childList: true, subtree: true });
     }
 
     function twitter() {
@@ -751,9 +774,10 @@
     }
 
     const hostname = unsafeWindow.location.hostname;
+    const pathname = unsafeWindow.location.pathname;
     if (hostname.endsWith("instagram.com")) {
         instagram();
-    } else if (hostname.endsWith("web.telegram.org")) {
+    } else if (hostname.endsWith("web.telegram.org") && pathname === "/z/") {
         telegram();
     }
 })();
