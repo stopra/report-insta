@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.15
+// @version      0.16
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -560,7 +560,7 @@
             simulateInput($(searchInput), account);
             console.log(`Search query '${account}' entered!`);
 
-            let searchRow = ".search-section .search-result .ListItem-button";
+            let searchRow = ".search-section .search-result.ListItem";
             // Wait for the search results...
             for (let attempt = 0; attempt < 10; attempt++) {
                 await sleep(randomBetween(1500, 3000));
@@ -575,21 +575,22 @@
                 );
                 return false;
             }
-
+            
+            let searchRowElement = $(searchRow);
             // Get correct result
             for (let attempt = 0; attempt < 5; attempt++) {
                 if (
-                    $(searchRow).querySelector(".status .handle").innerText ===
+                    searchRowElement.querySelector(".status .handle").innerText ===
                     account
                 ) {
                     break;
                 }
 
-                searchRow = $(searchRow).nextSibling;
+                searchRowElement = searchRowElement.nextSibling;
             }
 
             if (
-                $(searchRow).querySelector(".status .handle").innerText !==
+                searchRowElement.querySelector(".status .handle").innerText !==
                 account
             ) {
                 console.error(
@@ -598,7 +599,7 @@
                 return false;
             }
 
-            simulateMouseClick($(searchRow));
+            simulateMouseClick(searchRowElement.querySelector(".ListItem-button"));
 
             console.log(`Link to account '${account}' clicked`);
             return true;
@@ -745,6 +746,14 @@
             console.log("DONE!");
         }
 
+        unsafeWindow.onblur = function () {
+            if (STATE.reporting) {
+                alert(
+                    "Automatic reporting is in progress. Please stay on the page to complete the script execution."
+                );
+            }
+        };
+
         new MutationObserver(() => {
             const container = $(".LeftMainHeader");
             createReportButton(container, async () => {
@@ -755,7 +764,7 @@
                     method: "GET",
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
-                        await report((!debug && accounts) || ["MakarenkoLive"]);
+                        await report((!debug && accounts) || ["news_vo"]);
                         STATE.stopReporting();
                         GM_notification({
                             title: "Report Russian Propaganda",
