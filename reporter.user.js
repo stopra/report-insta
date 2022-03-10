@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.14
+// @version      0.15
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -686,6 +686,7 @@
             }
 
             for (let account of accounts) {
+                STATE.progress(reportedLastDay / ACCOUNTS_PER_DAY);
                 if (reportedLastDay >= ACCOUNTS_PER_DAY && !debug) {
                     console.log(
                         `%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`,
