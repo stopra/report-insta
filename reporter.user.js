@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.16
+// @version      0.17
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -397,10 +397,12 @@
                 $("._5f5mN.jIbKX._6VtSN.yZn4P")?.click();
                 $(".sqdOP.L3NKy.y3zKF")?.click();
                 // Wait for the unfollow button to appear.
-                const unfollow = await waitForElement(
-                    "._5f5mN.-fzfL._6VtSN.yZn4P",
-                    5
-                );
+                const unfollow =
+                    (await waitForElement("._5f5mN.-fzfL._6VtSN.yZn4P", 5)) ||
+                    (await waitForElement(
+                        ".qF0y9.Igw0E.IwRSH div div:nth-child(2)",
+                        5
+                    ));
                 if (!unfollow) {
                     console.log(
                         `%cCouldn't follow this account`,
@@ -415,6 +417,7 @@
             async function unfollowAccount() {
                 console.log("Unfollow account ...");
                 $("._5f5mN.-fzfL._6VtSN.yZn4P")?.click();
+                $(".qF0y9.Igw0E.IwRSH div div:nth-child(2) button")?.click();
                 const container = await waitForElement(".mt3GC");
                 if (!container) {
                     return;
@@ -575,13 +578,13 @@
                 );
                 return false;
             }
-            
+
             let searchRowElement = $(searchRow);
             // Get correct result
             for (let attempt = 0; attempt < 5; attempt++) {
                 if (
-                    searchRowElement.querySelector(".status .handle").innerText ===
-                    account
+                    searchRowElement.querySelector(".status .handle")
+                        .innerText === account
                 ) {
                     break;
                 }
@@ -599,7 +602,9 @@
                 return false;
             }
 
-            simulateMouseClick(searchRowElement.querySelector(".ListItem-button"));
+            simulateMouseClick(
+                searchRowElement.querySelector(".ListItem-button")
+            );
 
             console.log(`Link to account '${account}' clicked`);
             return true;
