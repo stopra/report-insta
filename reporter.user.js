@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.17
+// @version      0.18
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -540,7 +540,7 @@
     }
 
     function telegram() {
-        const ACCOUNTS_PER_DAY = 80;
+        const ACCOUNTS_PER_DAY = 100;
         const DURATION_DAY = 24 * 60 * 60 * 1000;
         const REASONS = JSON.parse(
             `["This message spreads Russian propaganda.","This message spreads Russian propaganda and propaganda of war.","This message spreads war propaganda.","This message spreads propaganda of war.","This message spreads Putin's propaganda.","Spreading of Russian propaganda.","Russian propaganda.","Russian war propaganda.","Putin's war propaganda.","This message spreads hate propaganda.","This message spreads hate propaganda and propaganda of war.","This message spreads hate propaganda.","This message spreads propaganda of hate.","Spreading of hate propaganda.","Hate propaganda.","War and hate propaganda.","Hate and war propaganda.","Putin's war and hate propaganda.","Propaganda of war.","Propaganda of hate.","Propaganda of hate and war.","This message spreads violence propaganda.","This message spreads violence propaganda and propaganda of war.","This message spreads violence propaganda.","This message spreads propaganda of violence.","Spreading of violence propaganda.","Violence propaganda.","Russian violence propaganda.","Putin's violence propaganda.","This message spreads hate propaganda and propaganda of violence.","This message spreads violence.","Violence and hate propaganda.","Violence and war propaganda.","Putin's war and violence propaganda.","Propaganda of violence.","Propaganda of hate and violence.","Propaganda of violence and war.","This message favours hate and war.","This message favours war and hate.","This message favours hate and violence.","This message favours violence and hate.","This message favours war and violence.","This message favours violence and war.","This message favours hate, propaganda and war.","This message favours propaganda, war and hate.","This message favours hate violence and propaganda.","This message favours violence, propaganda and hate.","This message favours propaganda, war and violence.","This message favours violence, war and propaganda.","Message that favours hate and war.","Message that favours war and hate.","Message that favours hate and violence.","Message that favours violence and hate.","Message that favours war and violence.","Message that favours violence and war.","Message that favours hate, propaganda and war.","Message that favours propaganda, war and hate.","Message that favours hate violence and propaganda.","Message that favours violence, propaganda and hate.","Message that favours propaganda, war and violence.","Message that favours violence, war and propaganda.","The channel undermines the integrity of the Ukrainian state.","Spreading fake news.","Misleading people.","Misleading people, spreading fake news.","Spreading fake news, misleading people.","Misleading people & spreading fake news.","Spreading fake news & misleading people.","Misleading people and spreading fake news.","Spreading fake news and misleading people.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine.","Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the murder of Ukrainians and Ukrainian soldiers. Propaganda of the war in Ukraine. ","Propaganda of the war in Ukraine,  propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine, the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians, Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainians.","Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainian soldiers, Ukrainians.","Propaganda of the murder of Ukrainian soldiers and Ukrainians."]`
@@ -704,7 +704,7 @@
                 try {
                     const reported =
                         localStorage.getItem(`telegram-${account}`) && !debug;
-                    if (reported) {
+                    if (reported && Date.now() - reported < 3 * DURATION_DAY) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
                             `color: ${COLOR_WARNING}`
