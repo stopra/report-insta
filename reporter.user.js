@@ -247,6 +247,9 @@
             if ($(btn)) {
                 break;
             }
+            btn =
+                (btn === btns[i].selector && btns[i].altSelector) ||
+                btns[i].selector;
         }
 
         if ($(btn) === null) {
@@ -641,6 +644,8 @@
                 {
                     selector:
                         ".messages-container .message-date-group:nth-last-child(3) .Message:last-child",
+                    altSelector:
+                        ".messages-container .message-date-group:nth-last-child(4) .Message:last-child",
                 },
                 {
                     selector: ".MessageSelectToolbar-actions .icon-flag",
@@ -769,7 +774,7 @@
                     method: "GET",
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
-                        await report((!debug && accounts) || ["news_vo"]);
+                        await report((!debug && accounts) || ["nezhurka"]);
                         STATE.stopReporting();
                         GM_notification({
                             title: "Report Russian Propaganda",
