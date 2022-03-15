@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.18
+// @version      0.19
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
