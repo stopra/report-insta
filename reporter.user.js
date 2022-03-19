@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.19
+// @version      0.20
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
 // @match        https://web.telegram.org/z/
+// @match        https://twitter.com/*
 // @icon         data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjI5OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBIMHYyOTguN2g1MTJWMFoiIGZpbGw9IiM0RDcyQzAiLz48cGF0aCBkPSJNNTEyIDE0OS4zSDB2MTQ5LjRoNTEyVjE0OS4zWiIgZmlsbD0iI0YyREQzMCIvPjwvc3ZnPg==
 // @connect      palyanytsya.wakeup4.repl.co
 // @grant        GM_addElement
@@ -17,6 +18,9 @@
 
 (function () {
     "use strict";
+    if (window.top !== window.self) {
+        return;
+    }
 
     const $ = document.querySelector.bind(document);
 
@@ -240,7 +244,7 @@
             await sleep(randomBetween(1500, 2000));
         }
 
-        const btn = btns[i].selector;
+        let btn = btns[i].selector;
         for (let attempt = 0; attempt < 10; attempt++) {
             console.log(`Wait for #${i} '${btn}' to appear...`);
             await sleep(randomBetween(500, 1000));
@@ -778,7 +782,7 @@
                         STATE.stopReporting();
                         GM_notification({
                             title: "Report Russian Propaganda",
-                            text: "Finished reporting Instagram Accounts! Glory to Ukraine!",
+                            text: "Finished reporting Telegram Accounts! Glory to Ukraine!",
                         });
                     },
                 });
@@ -787,8 +791,208 @@
     }
 
     function twitter() {
-        console.log("Report Twitter Accounts");
-        // TODO: Implement.
+        const ACCOUNTS_PER_DAY = 50;
+        const DURATION_DAY = 24 * 60 * 60 * 1000;
+        let debug = false;
+
+        function countReportedAccountsLastDay(accounts) {
+            let reportedLastDay = 0;
+            for (let account of accounts) {
+                const reported = localStorage.getItem(`twitter-${account}`);
+                // Check reported === "true" for backward-compatibility reasons: at
+                // first, we stored "true" in localStorage.
+                if (!reported || reported === "true") {
+                    continue;
+                }
+
+                const reportedAt = Number(reported);
+                const interval = Date.now() - reportedAt;
+                if (interval < DURATION_DAY) {
+                    reportedLastDay++;
+                }
+            }
+            return reportedLastDay;
+        }
+
+        async function goToAccount($, account) {
+            const searchInput = "[data-testid=SearchBox_Search_Input]";
+            if ($(searchInput) == null) {
+                console.error(
+                    `Search button '${searchInput}' not found. Make sure the search results menu is closed.`
+                );
+                return false;
+            }
+
+            // Click on the search button to open the search results menu.
+            console.log(`Search button '${searchInput}' clicked!`);
+
+            // Simulate typing the search query
+            $(searchInput).focus();
+            simulateMouseClick($(searchInput));
+            setNativeValue($(searchInput), account);
+            $(searchInput).dispatchEvent(new Event("input", { bubbles: true }));
+            console.log(`Search query '${account}' entered!`);
+
+            await sleep(randomBetween(500, 1000));
+
+            let searchRow = $("[role=listbox] [data-testid=TypeaheadUser]");
+            // Wait for the search results...
+            for (let attempt = 0; attempt < 5; attempt++) {
+                await sleep(randomBetween(500, 1000));
+                if (searchRow) {
+                    break;
+                }
+            }
+
+            if (!searchRow) {
+                console.error(
+                    `Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`
+                );
+                return false;
+            }
+
+            simulateMouseClick(searchRow);
+
+            console.log(`Link to account '${account}' clicked`);
+            return true;
+        }
+
+        async function reportAccount($, account) {
+            console.log("start reporting");
+
+            await sleep(randomBetween(1500, 3000));
+            await click($, account, 0, [
+                {
+                    selector: "[data-testid=userActions]",
+                },
+                {
+                    selector:
+                        "[role=menu] .css-1dbjc4n [role=menuitem]:last-child",
+                },
+            ]);
+
+            await sleep(randomBetween(1500, 3000));
+            let iframe = $("iframe").contentDocument;
+            simulateMouseClick(iframe.querySelector("[value=AbuseOption]"));
+
+            if (!debug) {
+                await sleep(randomBetween(1500, 3000));
+                iframe = $("iframe").contentDocument;
+                simulateMouseClick(
+                    iframe.querySelector("[value=OffensiveOption]")
+                );
+
+                await sleep(randomBetween(1500, 3000));
+                simulateMouseClick($(".r-s8bhmr .r-lrvibr"));
+            } else {
+                await sleep(randomBetween(1500, 3000));
+                simulateMouseClick($("[data-testid=app-bar-back]"));
+
+                await sleep(randomBetween(1500, 3000));
+                simulateMouseClick($("[data-testid=app-bar-back]"));
+            }
+        }
+
+        async function report(accounts) {
+            console.log(
+                "%cIMPORTANT! Please move focus from Dev Tools back to the page!",
+                `color: ${COLOR_ATTENTION}`
+            );
+            // Wait for the user to switch the focus back to the page.
+            await sleep(5000);
+
+            shuffle(accounts);
+            console.log(`Accounts: ${accounts}`);
+
+            const failedAccounts = [];
+            let reportedLastDay = countReportedAccountsLastDay(accounts);
+            if (reportedLastDay > 0) {
+                console.log(
+                    `%cYou've reported ${reportedLastDay} accounts last day.`,
+                    `color: ${COLOR_SUCCESS}`
+                );
+            }
+
+            for (let account of accounts) {
+                STATE.progress(reportedLastDay / ACCOUNTS_PER_DAY);
+                if (reportedLastDay >= ACCOUNTS_PER_DAY && !debug) {
+                    console.log(
+                        `%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`,
+                        `color: ${COLOR_ATTENTION}`
+                    );
+                    break;
+                }
+
+                try {
+                    const reported =
+                        localStorage.getItem(`twitter-${account}`) && !debug;
+                    if (reported && Date.now() - reported < 3 * DURATION_DAY) {
+                        console.log(
+                            `%cskip: account '${account}' already reported`,
+                            `color: ${COLOR_WARNING}`
+                        );
+                        continue;
+                    }
+
+                    await sleep(randomBetween(1000, 2000));
+                    const success = await goToAccount($, account);
+                    if (!success) {
+                        failedAccounts.push(account);
+                        continue;
+                    }
+
+                    await sleep(randomBetween(500, 1000));
+
+                    // Wait for the page to load
+                    while (!document || document.readyState !== "complete") {
+                        console.log("...wait...");
+                        await sleep(randomBetween(100, 1000));
+                    }
+
+                    await sleep(randomBetween(1500, 3000));
+
+                    // Call a function to report the account.
+                    await reportAccount($, account);
+
+                    if (!debug) {
+                        localStorage.setItem(`twitter-${account}`, Date.now());
+                    }
+                    reportedLastDay++;
+                } catch (err) {
+                    console.error(
+                        "failed to report '" + account + "' Error: " + err
+                    );
+                }
+            }
+
+            STATE.progress(1);
+            if (failedAccounts.length > 0) {
+                console.log("Failed accounts: " + failedAccounts);
+            }
+
+            console.log("DONE!");
+        }
+
+        new MutationObserver(() => {
+            const container = $("#react-root .r-1hycxz.r-136ojw6 div");
+            createReportButton(container, async () => {
+                createProgressBar();
+                STATE.startReporting();
+                GM_xmlhttpRequest({
+                    url: "https://palyanytsya.wakeup4.repl.co/twitter",
+                    method: "GET",
+                    responseType: "json",
+                    onload: async ({ response: accounts }) => {
+                        await report((!debug && accounts) || ["rabotaembrat"]);
+                        STATE.stopReporting();
+                        GM_notification({
+                            title: "Report Russian Propaganda",
+                            text: "Finished reporting Twitter Accounts! Glory to Ukraine!",
+                        });
+                    },
+                });
+            });
+        }).observe($("#react-root"), { childList: true, subtree: true });
     }
 
     const hostname = unsafeWindow.location.hostname;
@@ -797,5 +1001,7 @@
         instagram();
     } else if (hostname.endsWith("web.telegram.org") && pathname === "/z/") {
         telegram();
+    } else if (hostname.endsWith("twitter.com")) {
+        twitter();
     }
 })();
