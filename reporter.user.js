@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.21
+// @version      0.22
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -711,9 +711,14 @@
                 }
 
                 try {
-                    const reported =
-                        localStorage.getItem(`telegram-${account}`) && !debug;
-                    if (reported && Date.now() - reported < 3 * DURATION_DAY) {
+                    const reported = localStorage.getItem(
+                        `telegram-${account}`
+                    );
+                    if (
+                        !debug &&
+                        reported &&
+                        Date.now() - reported < 3 * DURATION_DAY
+                    ) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
                             `color: ${COLOR_WARNING}`
@@ -924,9 +929,12 @@
                 }
 
                 try {
-                    const reported =
-                        localStorage.getItem(`twitter-${account}`) && !debug;
-                    if (reported && Date.now() - reported < 3 * DURATION_DAY) {
+                    const reported = localStorage.getItem(`twitter-${account}`);
+                    if (
+                        !debug &&
+                        reported &&
+                        Date.now() - reported < DURATION_DAY
+                    ) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
                             `color: ${COLOR_WARNING}`
