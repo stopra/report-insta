@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.22
+// @version      0.23
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -840,7 +840,7 @@
 
             await sleep(randomBetween(500, 1000));
 
-            let searchRow = $("[role=listbox] [data-testid=TypeaheadUser]");
+            let searchRow = $("[data-testid=typeaheadResult]:last-child [role=button]");
             // Wait for the search results...
             for (let attempt = 0; attempt < 5; attempt++) {
                 await sleep(randomBetween(500, 1000));
