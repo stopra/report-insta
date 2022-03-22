@@ -933,7 +933,7 @@
                     if (
                         !debug &&
                         reported &&
-                        Date.now() - reported < DURATION_DAY
+                        Date.now() - reported < 3 * DURATION_DAY
                     ) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
