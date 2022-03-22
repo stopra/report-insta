@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.24
+// @version      0.25
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -933,7 +933,7 @@
                     if (
                         !debug &&
                         reported &&
-                        Date.now() - reported < 3 * DURATION_DAY
+                        Date.now() - reported < 4 * DURATION_DAY
                     ) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
