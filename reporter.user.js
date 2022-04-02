@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.28
+// @version      0.29
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -490,12 +490,12 @@
                         await sleep(randomBetween(100, 1000));
                     }
 
-                    await sleep(randomBetween(1500, 3000));
-                    await followAccount(account);
+                    // await sleep(randomBetween(1500, 3000));
+                    // await followAccount(account);
                     await sleep(randomBetween(1500, 3000));
                     await reportAccount(account);
                     await sleep(randomBetween(1500, 3000));
-                    await unfollowAccount(account);
+                    // await unfollowAccount(account);
 
                     localStorage.setItem(account, Date.now());
                     reportedLastDay++;
@@ -1095,11 +1095,13 @@
             ]);
 
             await sleep(randomBetween(1500, 3000));
-            simulateInput($("textarea"), getRandomReason());
+            simulateInput($("textarea"), getRandomReason().replace('message', 'video'));
             await sleep(randomBetween(1500, 3000));
 
             if (!debug) {
                 $("#next-button tp-yt-paper-button").click();
+                await sleep(randomBetween(1500, 3000));
+                $("#confirm-button tp-yt-paper-button").click();
             } else {
                 $("#dismiss-button button").click();
             }
