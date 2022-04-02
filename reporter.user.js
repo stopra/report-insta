@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.26
+// @version      0.28
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
 // @match        https://web.telegram.org/z/
 // @match        https://twitter.com/*
+// @match        https://www.youtube.com/
 // @icon         data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjI5OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBIMHYyOTguN2g1MTJWMFoiIGZpbGw9IiM0RDcyQzAiLz48cGF0aCBkPSJNNTEyIDE0OS4zSDB2MTQ5LjRoNTEyVjE0OS4zWiIgZmlsbD0iI0YyREQzMCIvPjwvc3ZnPg==
 // @connect      palyanytsya.wakeup4.repl.co
 // @grant        GM_addElement
@@ -149,6 +150,9 @@
     const COLOR_ATTENTION = "#fc036f";
     const COLOR_SUCCESS = "#77d54c";
     const COLOR_WARNING = "#ffd24c";
+    const REASONS = JSON.parse(
+        `["This message spreads Russian propaganda.","This message spreads Russian propaganda and propaganda of war.","This message spreads war propaganda.","This message spreads propaganda of war.","This message spreads Putin's propaganda.","Spreading of Russian propaganda.","Russian propaganda.","Russian war propaganda.","Putin's war propaganda.","This message spreads hate propaganda.","This message spreads hate propaganda and propaganda of war.","This message spreads hate propaganda.","This message spreads propaganda of hate.","Spreading of hate propaganda.","Hate propaganda.","War and hate propaganda.","Hate and war propaganda.","Putin's war and hate propaganda.","Propaganda of war.","Propaganda of hate.","Propaganda of hate and war.","This message spreads violence propaganda.","This message spreads violence propaganda and propaganda of war.","This message spreads violence propaganda.","This message spreads propaganda of violence.","Spreading of violence propaganda.","Violence propaganda.","Russian violence propaganda.","Putin's violence propaganda.","This message spreads hate propaganda and propaganda of violence.","This message spreads violence.","Violence and hate propaganda.","Violence and war propaganda.","Putin's war and violence propaganda.","Propaganda of violence.","Propaganda of hate and violence.","Propaganda of violence and war.","This message favours hate and war.","This message favours war and hate.","This message favours hate and violence.","This message favours violence and hate.","This message favours war and violence.","This message favours violence and war.","This message favours hate, propaganda and war.","This message favours propaganda, war and hate.","This message favours hate violence and propaganda.","This message favours violence, propaganda and hate.","This message favours propaganda, war and violence.","This message favours violence, war and propaganda.","Message that favours hate and war.","Message that favours war and hate.","Message that favours hate and violence.","Message that favours violence and hate.","Message that favours war and violence.","Message that favours violence and war.","Message that favours hate, propaganda and war.","Message that favours propaganda, war and hate.","Message that favours hate violence and propaganda.","Message that favours violence, propaganda and hate.","Message that favours propaganda, war and violence.","Message that favours violence, war and propaganda.","The channel undermines the integrity of the Ukrainian state.","Spreading fake news.","Misleading people.","Misleading people, spreading fake news.","Spreading fake news, misleading people.","Misleading people & spreading fake news.","Spreading fake news & misleading people.","Misleading people and spreading fake news.","Spreading fake news and misleading people.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine.","Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the murder of Ukrainians and Ukrainian soldiers. Propaganda of the war in Ukraine. ","Propaganda of the war in Ukraine,  propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine, the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians, Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainians.","Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainian soldiers, Ukrainians.","Propaganda of the murder of Ukrainian soldiers and Ukrainians."]`
+    );
 
     function simulateMouseClick(element) {
         const mouseClickEvents = ["mousedown", "click", "mouseup"];
@@ -288,18 +292,12 @@
         element.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    function simulateRightClick(element) {
-        const ev = new MouseEvent("contextmenu", {
-            bubbles: true,
-            cancelable: false,
-            view: unsafeWindow,
-            button: 2,
-            buttons: 0,
-            clientX: element.getBoundingClientRect().x,
-            clientY: element.getBoundingClientRect().y,
-        });
-
-        element.dispatchEvent(ev);
+    function getRandomReason() {
+        const reason = REASONS[randomBetween(0, REASONS.length - 1)];
+        return (
+            reason.slice(0, reason.length - 1) +
+            ["!", ".", ""][randomBetween(0, 2)]
+        );
     }
 
     // </Utility>
@@ -469,10 +467,7 @@
 
                 try {
                     const reported = localStorage.getItem(account);
-                    if (
-                        reported &&
-                        Date.now() - reported < 7 * DURATION_DAY
-                    ) {
+                    if (reported && Date.now() - reported < 7 * DURATION_DAY) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
                             `color: ${COLOR_WARNING}`
@@ -550,11 +545,8 @@
     }
 
     function telegram() {
-        const ACCOUNTS_PER_DAY = 100;
+        const ACCOUNTS_PER_DAY = 150;
         const DURATION_DAY = 24 * 60 * 60 * 1000;
-        const REASONS = JSON.parse(
-            `["This message spreads Russian propaganda.","This message spreads Russian propaganda and propaganda of war.","This message spreads war propaganda.","This message spreads propaganda of war.","This message spreads Putin's propaganda.","Spreading of Russian propaganda.","Russian propaganda.","Russian war propaganda.","Putin's war propaganda.","This message spreads hate propaganda.","This message spreads hate propaganda and propaganda of war.","This message spreads hate propaganda.","This message spreads propaganda of hate.","Spreading of hate propaganda.","Hate propaganda.","War and hate propaganda.","Hate and war propaganda.","Putin's war and hate propaganda.","Propaganda of war.","Propaganda of hate.","Propaganda of hate and war.","This message spreads violence propaganda.","This message spreads violence propaganda and propaganda of war.","This message spreads violence propaganda.","This message spreads propaganda of violence.","Spreading of violence propaganda.","Violence propaganda.","Russian violence propaganda.","Putin's violence propaganda.","This message spreads hate propaganda and propaganda of violence.","This message spreads violence.","Violence and hate propaganda.","Violence and war propaganda.","Putin's war and violence propaganda.","Propaganda of violence.","Propaganda of hate and violence.","Propaganda of violence and war.","This message favours hate and war.","This message favours war and hate.","This message favours hate and violence.","This message favours violence and hate.","This message favours war and violence.","This message favours violence and war.","This message favours hate, propaganda and war.","This message favours propaganda, war and hate.","This message favours hate violence and propaganda.","This message favours violence, propaganda and hate.","This message favours propaganda, war and violence.","This message favours violence, war and propaganda.","Message that favours hate and war.","Message that favours war and hate.","Message that favours hate and violence.","Message that favours violence and hate.","Message that favours war and violence.","Message that favours violence and war.","Message that favours hate, propaganda and war.","Message that favours propaganda, war and hate.","Message that favours hate violence and propaganda.","Message that favours violence, propaganda and hate.","Message that favours propaganda, war and violence.","Message that favours violence, war and propaganda.","The channel undermines the integrity of the Ukrainian state.","Spreading fake news.","Misleading people.","Misleading people, spreading fake news.","Spreading fake news, misleading people.","Misleading people & spreading fake news.","Spreading fake news & misleading people.","Misleading people and spreading fake news.","Spreading fake news and misleading people.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine.","Propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the murder of Ukrainians and Ukrainian soldiers. Propaganda of the war in Ukraine. ","Propaganda of the war in Ukraine,  propaganda of the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine, the murder of Ukrainians and Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians, Ukrainian soldiers.","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainians","Propaganda of the war in Ukraine. Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainians.","Propaganda of the murder of Ukrainian soldiers.","Propaganda of the murder of Ukrainian soldiers, Ukrainians.","Propaganda of the murder of Ukrainian soldiers and Ukrainians."]`
-        );
         const debug = false;
 
         async function goToAccount($, account) {
@@ -669,12 +661,7 @@
 
             await sleep(randomBetween(1500, 3000));
 
-            const reason = REASONS[randomBetween(0, REASONS.length - 1)];
-            simulateInput(
-                $(".modal-content .form-control"),
-                reason.slice(0, reason.length - 1) +
-                    ["!", ".", ""][randomBetween(0, 2)]
-            );
+            simulateInput($(".modal-content .form-control"), getRandomReason());
 
             await sleep(randomBetween(1500, 3000));
 
@@ -720,7 +707,7 @@
                     if (
                         !debug &&
                         reported &&
-                        Date.now() - reported < 3 * DURATION_DAY
+                        Date.now() - reported < 4 * DURATION_DAY
                     ) {
                         console.log(
                             `%cskip: account '${account}' already reported`,
@@ -843,7 +830,9 @@
 
             await sleep(randomBetween(500, 1000));
 
-            let searchRow = $("[data-testid=typeaheadResult]:last-child [role=button]");
+            let searchRow = $(
+                "[data-testid=typeaheadResult]:last-child [role=button]"
+            );
             // Wait for the search results...
             for (let attempt = 0; attempt < 5; attempt++) {
                 await sleep(randomBetween(500, 1000));
@@ -1006,6 +995,223 @@
         }).observe($("#react-root"), { childList: true, subtree: true });
     }
 
+    function youtube() {
+        const ACCOUNTS_PER_DAY = 50;
+        const DURATION_DAY = 24 * 60 * 60 * 1000;
+        let debug = false;
+
+        function countReportedAccountsLastDay(accounts) {
+            let reportedLastDay = 0;
+            for (let account of accounts) {
+                const reported = localStorage.getItem(`youtube-${account}`);
+                // Check reported === "true" for backward-compatibility reasons: at
+                // first, we stored "true" in localStorage.
+                if (!reported || reported === "true") {
+                    continue;
+                }
+
+                const reportedAt = Number(reported);
+                const interval = Date.now() - reportedAt;
+                if (interval < DURATION_DAY) {
+                    reportedLastDay++;
+                }
+            }
+            return reportedLastDay;
+        }
+
+        async function goToAccount($, account) {
+            const searchInput = "#search-input #search";
+            if ($(searchInput) == null) {
+                console.error(
+                    `Search button '${searchInput}' not found. Make sure the search results menu is closed.`
+                );
+                return false;
+            }
+
+            // Simulate typing the search query
+            simulateInput($(searchInput), account);
+            await sleep(randomBetween(1500, 3000));
+            $(searchInput).dispatchEvent(
+                new KeyboardEvent("keydown", { key: "Enter", keyCode: 13 })
+            );
+            console.log(`Search query '${account}' entered!`);
+
+            await sleep(randomBetween(1500, 3000));
+
+            let searchRow = $("#main-link ytd-channel-name");
+            // Wait for the search results...
+            for (let attempt = 0; attempt < 5; attempt++) {
+                await sleep(randomBetween(500, 1000));
+                if (searchRow) {
+                    break;
+                }
+            }
+
+            if (!searchRow) {
+                console.error(
+                    `Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`
+                );
+                return false;
+            }
+
+            searchRow.click();
+
+            console.log(`Link to account '${account}' clicked`);
+            return true;
+        }
+
+        async function reportAccount($, account) {
+            console.log("start reporting");
+
+            await sleep(randomBetween(1500, 3000));
+            await click($, account, 0, [
+                {
+                    selector: "tp-yt-paper-tab:nth-child(12)",
+                },
+                {
+                    selector: "#right-column #action-buttons button",
+                },
+                {
+                    selector:
+                        "tp-yt-paper-listbox ytd-menu-service-item-renderer:last-child",
+                },
+                {
+                    selector: `tp-yt-paper-radio-button[name="${
+                        (randomBetween(3, 5) > 3 && 5) || 3
+                    }"]`,
+                },
+                {
+                    selector: "#next-button tp-yt-paper-button",
+                },
+                {
+                    selector: `ytd-selectable-video-renderer:nth-child(${randomBetween(
+                        1,
+                        5
+                    )}) tp-yt-paper-checkbox`,
+                },
+                {
+                    selector: "#next-button tp-yt-paper-button",
+                },
+            ]);
+
+            await sleep(randomBetween(1500, 3000));
+            simulateInput($("textarea"), getRandomReason());
+            await sleep(randomBetween(1500, 3000));
+
+            if (!debug) {
+                $("#next-button tp-yt-paper-button").click();
+            } else {
+                $("#dismiss-button button").click();
+            }
+        }
+
+        async function report(accounts) {
+            console.log(
+                "%cIMPORTANT! Please move focus from Dev Tools back to the page!",
+                `color: ${COLOR_ATTENTION}`
+            );
+            // Wait for the user to switch the focus back to the page.
+            await sleep(5000);
+
+            shuffle(accounts);
+            console.log(`Accounts: ${accounts}`);
+
+            const failedAccounts = [];
+            let reportedLastDay = countReportedAccountsLastDay(accounts);
+            if (reportedLastDay > 0) {
+                console.log(
+                    `%cYou've reported ${reportedLastDay} accounts last day.`,
+                    `color: ${COLOR_SUCCESS}`
+                );
+            }
+
+            for (let account of accounts) {
+                STATE.progress(reportedLastDay / ACCOUNTS_PER_DAY);
+                if (reportedLastDay >= ACCOUNTS_PER_DAY && !debug) {
+                    console.log(
+                        `%cMax number of accounts(${ACCOUNTS_PER_DAY}) per day reached. Please rerun this script tomorrow. We'll stop russian propoganda!`,
+                        `color: ${COLOR_ATTENTION}`
+                    );
+                    break;
+                }
+
+                try {
+                    const reported = localStorage.getItem(`youtube-${account}`);
+                    if (
+                        !debug &&
+                        reported &&
+                        Date.now() - reported < 4 * DURATION_DAY
+                    ) {
+                        console.log(
+                            `%cskip: account '${account}' already reported`,
+                            `color: ${COLOR_WARNING}`
+                        );
+                        continue;
+                    }
+
+                    await sleep(randomBetween(1000, 2000));
+                    const success = await goToAccount($, account);
+                    if (!success) {
+                        failedAccounts.push(account);
+                        continue;
+                    }
+
+                    await sleep(randomBetween(500, 1000));
+
+                    // Wait for the page to load
+                    while (!document || document.readyState !== "complete") {
+                        console.log("...wait...");
+                        await sleep(randomBetween(100, 1000));
+                    }
+
+                    await sleep(randomBetween(1500, 3000));
+
+                    // Call a function to report the account.
+                    await reportAccount($, account);
+
+                    if (!debug) {
+                        localStorage.setItem(`youtube-${account}`, Date.now());
+                    }
+                    reportedLastDay++;
+                } catch (err) {
+                    console.error(
+                        "failed to report '" + account + "' Error: " + err
+                    );
+                }
+            }
+
+            STATE.progress(1);
+            if (failedAccounts.length > 0) {
+                console.log("Failed accounts: " + failedAccounts);
+            }
+
+            console.log("DONE!");
+        }
+
+        new MutationObserver(() => {
+            const container = $("#center");
+            createReportButton(container, async () => {
+                createProgressBar();
+                STATE.startReporting();
+                GM_xmlhttpRequest({
+                    url: "https://palyanytsya.wakeup4.repl.co/youtube",
+                    method: "GET",
+                    responseType: "json",
+                    onload: async ({ response: accounts }) => {
+                        await report(
+                            (!debug && accounts) || ["UC71FuQZzlI7BxvaKlAgJsBQ"]
+                        );
+                        STATE.stopReporting();
+                        GM_notification({
+                            title: "Report Russian Propaganda",
+                            text: "Finished reporting YouTube Accounts! Glory to Ukraine!",
+                        });
+                    },
+                });
+            });
+        }).observe($("ytd-app"), { childList: true, subtree: true });
+    }
+
     const hostname = unsafeWindow.location.hostname;
     const pathname = unsafeWindow.location.pathname;
     if (hostname.endsWith("instagram.com")) {
@@ -1014,5 +1220,7 @@
         telegram();
     } else if (hostname.endsWith("twitter.com")) {
         twitter();
+    } else if (hostname.endsWith("youtube.com")) {
+        youtube();
     }
 })();
