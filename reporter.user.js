@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.29
+// @version      0.30
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -168,6 +168,15 @@
         );
     }
 
+    function simulateEnter(element) {
+        const mouseClickEvents = ["keydown", "keypress", "keyup"];
+        mouseClickEvents.forEach((mouseEventType) =>
+            element.dispatchEvent(
+                new KeyboardEvent(mouseEventType, { key: "Enter", keyCode: 13 })
+            )
+        );
+    }
+
     function setNativeValue(element, value) {
         const valueSetter = Object.getOwnPropertyDescriptor(
             element,
@@ -303,7 +312,7 @@
     // </Utility>
 
     function instagram() {
-        const ACCOUNTS_PER_DAY = 40;
+        const ACCOUNTS_PER_DAY = 60;
         const DURATION_DAY = 24 * 60 * 60 * 1000;
 
         async function report(accounts) {
@@ -1029,11 +1038,11 @@
             }
 
             // Simulate typing the search query
-            simulateInput($(searchInput), account);
-            await sleep(randomBetween(1500, 3000));
-            $(searchInput).dispatchEvent(
-                new KeyboardEvent("keydown", { key: "Enter", keyCode: 13 })
-            );
+            simulateInput($(searchInput), account)
+            simulateEnter($(searchInput));
+            await sleep(randomBetween(500, 1000));
+            simulateEnter($(searchInput));
+            $("#search-icon-legacy").click();
             console.log(`Search query '${account}' entered!`);
 
             await sleep(randomBetween(1500, 3000));
