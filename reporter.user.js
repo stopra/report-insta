@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.31
+// @version      0.32
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -647,7 +647,7 @@
                     selector: ".HeaderActions button:nth-child(3)",
                 },
                 {
-                    selector: ".HeaderMenuContainer .Menu .MenuItem:nth-child(2)",
+                    selector: ".HeaderMenuContainer .Menu .MenuItem .icon-select",
                 },
                 {
                     selector:
