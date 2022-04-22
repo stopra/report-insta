@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.33
+// @version      0.34
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -647,7 +647,8 @@
                     selector: ".HeaderActions button:nth-child(3)",
                 },
                 {
-                    selector: ".HeaderMenuContainer .Menu .MenuItem .icon-select",
+                    selector:
+                        ".HeaderMenuContainer .Menu .MenuItem .icon-select",
                 },
                 {
                     selector:
@@ -1035,12 +1036,20 @@
             }
 
             // Simulate typing the search query
-            simulateInput($(searchInput), account)
+            simulateInput($(searchInput), account);
             simulateEnter($(searchInput));
             await sleep(randomBetween(500, 1000));
             simulateEnter($(searchInput));
             $("#search-icon-legacy").click();
             console.log(`Search query '${account}' entered!`);
+
+            await sleep(randomBetween(3000, 5000));
+            $("#filter-menu tp-yt-paper-button").click();
+
+            await sleep(randomBetween(500, 1000));
+            $(
+                "#collapse-content ytd-search-filter-group-renderer:nth-child(2) ytd-search-filter-renderer:nth-child(4) a"
+            ).click();
 
             await sleep(randomBetween(1500, 3000));
 
@@ -1094,6 +1103,7 @@
                         1,
                         5
                     )}) tp-yt-paper-checkbox`,
+                    altSelector: `ytd-selectable-video-renderer:nth-child(1) tp-yt-paper-checkbox`,
                 },
                 {
                     selector: "#next-button tp-yt-paper-button",
@@ -1212,7 +1222,7 @@
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
                         await report(
-                            (!debug && accounts) || ["UC71FuQZzlI7BxvaKlAgJsBQ"]
+                            (!debug && accounts) || ["UCwy4M7VpTcr5Dg-KtA3gUuw"]
                         );
                         STATE.stopReporting();
                         GM_notification({
