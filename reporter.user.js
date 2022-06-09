@@ -321,7 +321,7 @@
             }
 
             async function goToAccount($, account) {
-                const searchButton = ".cTBqC";
+                const searchButton = "._aaw8";
                 if ($(searchButton) == null) {
                     console.error(
                         `Search button '${searchButton}' not found. Make sure the search results menu is closed.`
@@ -334,7 +334,7 @@
                 console.log(`Search button '${searchButton}' clicked!`);
 
                 // Simulate typing the search query
-                const searchInput = ".XTCLo.d_djL.DljaH";
+                const searchInput = "._aawh._aawj._aauy";
                 // simulateMouseClick($(searchInput));
                 setNativeValue($(searchInput), account);
                 $(searchInput).dispatchEvent(
@@ -342,7 +342,7 @@
                 );
                 console.log(`Search query '${account}' entered!`);
 
-                const firstSearchRow = ".fuqBx div:nth-child(1) a";
+                const firstSearchRow = "._abnx div:nth-child(1) a";
                 // Wait for the search results...
                 for (let attempt = 0; attempt < 5; attempt++) {
                     await sleep(randomBetween(500, 1000));
@@ -387,21 +387,21 @@
             async function reportAccount(account) {
                 console.log("start reporting");
                 await click($, account, 0, [
-                    { selector: ".VMs3J .wpO6b" },
-                    { selector: ".mt3GC button:nth-child(3)" },
+                    { selector: "._aa_n ._abl-" },
+                    { selector: "._a9-z button:nth-child(3)" },
                     {
-                        selector: ".J09pf button:nth-child(2)",
-                        wait: async () => waitForElementToUpdate($(".J09pf")),
-                        skip: async () => !hasChildNumber(".J09pf button", 2),
+                        selector: "._ac7r button:nth-child(2)",
+                        wait: async () => waitForElementToUpdate($("._ac7r")),
+                        skip: async () => !hasChildNumber("._ac7r button", 2),
                     },
                     {
-                        selector: ".J09pf button:nth-child(1)",
-                        wait: async () => waitForElementToUpdate($(".J09pf")),
+                        selector: "._ac7r button:nth-child(1)",
+                        wait: async () => waitForElementToUpdate($("._ac7r")),
                     },
-                    { selector: ".J09pf button:nth-child(11)" },
+                    { selector: "._ac7r button:nth-child(11)" },
                     // { selector: "#igCoreRadioButtontag-3" },
                     // { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" },
-                    { selector: "._1XyCr .sqdOP.L3NKy.y3zKF" },
+                    { selector: "._ab8w ._acan._acap._acas" },
                 ]);
             }
 
@@ -532,7 +532,7 @@
         };
 
         new MutationObserver(() => {
-            const container = $(".MWDvN");
+            const container = $("._acun");
             createReportButton(container, async () => {
                 createProgressBar();
                 STATE.startReporting();
@@ -550,7 +550,7 @@
                     },
                 });
             });
-        }).observe($("#react-root"), { childList: true, subtree: true });
+        }).observe($("._a3wf"), { childList: true, subtree: true });
     }
 
     function telegram() {
