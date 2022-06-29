@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.36
+// @version      0.37
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -330,6 +330,7 @@
                 }
 
                 // Click on the search button to open the search results menu.
+                $(searchButton).focus();
                 simulateMouseClick($(searchButton));
                 console.log(`Search button '${searchButton}' clicked!`);
 
@@ -342,20 +343,26 @@
                 );
                 console.log(`Search query '${account}' entered!`);
 
-                const firstSearchRow = "._abnx div:nth-child(1) a";
-                // Wait for the search results...
+                let searchRow;
                 for (let attempt = 0; attempt < 5; attempt++) {
                     await sleep(randomBetween(500, 1000));
-                    if ($(firstSearchRow)) {
+                    const row = `._abnx div:nth-child(${attempt + 1}) a`;
+                    if ($(row) &&
+                        $(row).querySelector("._aacl._aaco._aacw")
+                            .innerText === account
+                    ) {
+                        searchRow = row;
                         break;
                     }
                 }
 
-                const link = $(firstSearchRow);
+                const link = $(searchRow);
                 if (!link) {
                     console.error(
                         `Couldn't find search results. Make sure to return the focus to the page after kicking off the script. Or, try increasing the timeout above in case the search is slow.`
                     );
+                    simulateMouseClick($('._aawn._9-lv'));
+                    await sleep(randomBetween(500, 1000));
                     return false;
                 }
 
