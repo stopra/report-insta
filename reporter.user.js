@@ -1059,11 +1059,6 @@
             ).click();
 
             await sleep(randomBetween(1500, 3000));
-            if ($("yt-search-query-correction a:nth-child(4)")) {
-                $("yt-search-query-correction a:nth-child(4)").click();
-            }
-
-            await sleep(randomBetween(1500, 3000));
 
             let searchRow = $("#main-link ytd-channel-name");
             // Wait for the search results...
@@ -1072,6 +1067,12 @@
                 if (searchRow) {
                     break;
                 }
+            }
+
+            if (!searchRow && $("yt-search-query-correction a:nth-child(4)")) {
+                $("yt-search-query-correction a:nth-child(4)").click();
+                await sleep(randomBetween(1500, 3000));
+                searchRow = $("#main-link ytd-channel-name");
             }
 
             if (!searchRow) {
