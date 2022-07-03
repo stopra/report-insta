@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.37
+// @version      0.38
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -1050,16 +1050,7 @@
             $("#search-icon-legacy").click();
             console.log(`Search query '${account}' entered!`);
 
-            await sleep(randomBetween(3000, 5000));
-            $("#filter-menu tp-yt-paper-button").click();
-
             await sleep(randomBetween(500, 1000));
-            $(
-                "#collapse-content ytd-search-filter-group-renderer:nth-child(2) ytd-search-filter-renderer:nth-child(4) a"
-            ).click();
-
-            await sleep(randomBetween(1500, 3000));
-
             let searchRow = $("#main-link ytd-channel-name");
             // Wait for the search results...
             for (let attempt = 0; attempt < 5; attempt++) {
@@ -1067,6 +1058,17 @@
                 if (searchRow) {
                     break;
                 }
+            }
+            
+            if (!searchRow) {
+                await sleep(randomBetween(3000, 5000));
+                $("#filter-menu tp-yt-paper-button").click();
+                await sleep(randomBetween(3000, 5000));
+                $(
+                    "#collapse-content ytd-search-filter-group-renderer:nth-child(2) ytd-search-filter-renderer:nth-child(4) a"
+                ).click();
+                await sleep(randomBetween(1500, 3000));
+                searchRow = $("#main-link ytd-channel-name");
             }
 
             if (!searchRow && $("yt-search-query-correction a:nth-child(4)")) {
@@ -1235,7 +1237,7 @@
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
                         await report(
-                            (!debug && accounts) || ["UCwy4M7VpTcr5Dg-KtA3gUuw"]
+                            (!debug && accounts) || ["РоманАлябьевСаарбрюккен"]
                         );
                         STATE.stopReporting();
                         GM_notification({
