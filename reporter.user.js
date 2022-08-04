@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.38
+// @version      0.39
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -335,7 +335,7 @@
                 console.log(`Search button '${searchButton}' clicked!`);
 
                 // Simulate typing the search query
-                const searchInput = "._aawh._aawj._aauy";
+                const searchInput = "._aauy";
                 // simulateMouseClick($(searchInput));
                 setNativeValue($(searchInput), account);
                 $(searchInput).dispatchEvent(
