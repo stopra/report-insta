@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.39
+// @version      0.40
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -312,7 +312,7 @@
     // </Utility>
 
     function instagram() {
-        const ACCOUNTS_PER_DAY = 60;
+        const ACCOUNTS_PER_DAY = 70;
         const DURATION_DAY = 24 * 60 * 60 * 1000;
 
         async function report(accounts) {
@@ -1010,7 +1010,7 @@
     }
 
     function youtube() {
-        const ACCOUNTS_PER_DAY = 50;
+        const ACCOUNTS_PER_DAY = 70;
         const DURATION_DAY = 24 * 60 * 60 * 1000;
         let debug = false;
 
