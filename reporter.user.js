@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.40
+// @version      0.41
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -1059,7 +1059,7 @@
                     break;
                 }
             }
-            
+
             if (!searchRow) {
                 await sleep(randomBetween(3000, 5000));
                 $("#filter-menu tp-yt-paper-button").click();
@@ -1111,7 +1111,7 @@
                     }"]`,
                 },
                 {
-                    selector: "#next-button tp-yt-paper-button",
+                    selector: "#next-button button",
                 },
                 {
                     selector: `ytd-selectable-video-renderer:nth-child(${randomBetween(
@@ -1121,7 +1121,7 @@
                     altSelector: `ytd-selectable-video-renderer:nth-child(1) tp-yt-paper-checkbox`,
                 },
                 {
-                    selector: "#next-button tp-yt-paper-button",
+                    selector: "#next-button button",
                 },
             ]);
 
