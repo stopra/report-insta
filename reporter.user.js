@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Report Russian Propaganda
 // @namespace    http://tampermonkey.net/
-// @version      0.41
+// @version      0.42
 // @description  Report russian propaganda accounts across various social media web sites.
 // @author       peacesender
 // @match        https://*.instagram.com/*
@@ -1051,30 +1051,36 @@
             console.log(`Search query '${account}' entered!`);
 
             await sleep(randomBetween(500, 1000));
-            let searchRow = $("#main-link ytd-channel-name");
+            const checkSearchResult = () =>
+                $("#main-link") &&
+                decodeURI($("#main-link").href).endsWith(account);
+            let searchRow = $("#main-link");
             // Wait for the search results...
             for (let attempt = 0; attempt < 5; attempt++) {
                 await sleep(randomBetween(500, 1000));
-                if (searchRow) {
+                if (checkSearchResult()) {
                     break;
                 }
             }
 
-            if (!searchRow) {
+            if (!checkSearchResult()) {
                 await sleep(randomBetween(3000, 5000));
-                $("#filter-menu tp-yt-paper-button").click();
+                $("#filter-menu yt-button-shape button").click();
                 await sleep(randomBetween(3000, 5000));
                 $(
                     "#collapse-content ytd-search-filter-group-renderer:nth-child(2) ytd-search-filter-renderer:nth-child(4) a"
                 ).click();
                 await sleep(randomBetween(1500, 3000));
-                searchRow = $("#main-link ytd-channel-name");
+                searchRow = $("#main-link");
             }
 
-            if (!searchRow && $("yt-search-query-correction a:nth-child(4)")) {
+            if (
+                !checkSearchResult() &&
+                $("yt-search-query-correction a:nth-child(4)")
+            ) {
                 $("yt-search-query-correction a:nth-child(4)").click();
                 await sleep(randomBetween(1500, 3000));
-                searchRow = $("#main-link ytd-channel-name");
+                searchRow = $("#main-link");
             }
 
             if (!searchRow) {
@@ -1096,7 +1102,8 @@
             await sleep(randomBetween(1500, 3000));
             await click($, account, 0, [
                 {
-                    selector: "tp-yt-paper-tab:nth-child(12)",
+                    selector: "tp-yt-paper-tab:nth-child(12)[role=tab]",
+                    altSelector: "tp-yt-paper-tab:nth-child(10)[role=tab]",
                 },
                 {
                     selector: "#right-column #action-buttons button",
@@ -1135,9 +1142,9 @@
             await sleep(randomBetween(1500, 3000));
 
             if (!debug) {
-                $("#next-button tp-yt-paper-button").click();
+                $("#next-button button").click();
                 await sleep(randomBetween(1500, 3000));
-                $("#confirm-button tp-yt-paper-button").click();
+                $("#confirm-button button").click();
             } else {
                 $("#dismiss-button button").click();
             }
@@ -1237,7 +1244,7 @@
                     responseType: "json",
                     onload: async ({ response: accounts }) => {
                         await report(
-                            (!debug && accounts) || ["РоманАлябьевСаарбрюккен"]
+                            (!debug && accounts) || ["UCPaaZMaqbL39jTyaoMkccNg"]
                         );
                         STATE.stopReporting();
                         GM_notification({
